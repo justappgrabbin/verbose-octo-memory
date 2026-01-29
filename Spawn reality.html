@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paper Prime | Living Evolution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Space+Grotesk:wght@300;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --paper-texture: url('https://www.transparenttextures.com/patterns/p6.png');
+            --ink-color: #1a202c;
+            --growth-green: #4ade80;
+        }
+
+        body {
+            background: #0f0f12;
+            color: white;
+            font-family: 'Space Grotesk', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* LIVING PAPER AESTHETIC */
+        .notebook-side {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+            background: radial-gradient(circle at center, #1a1a20 0%, #0f0f12 100%);
+        }
+
+        .paper {
+            width: 100%;
+            max-width: 650px;
+            height: 85vh;
+            background-color: #fdfaf3;
+            background-image: var(--paper-texture);
+            box-shadow: 0 50px 100px -20px rgba(0,0,0,0.7), 0 30px 60px -30px rgba(0,0,0,0.8);
+            border-radius: 2px;
+            padding: 60px;
+            position: relative;
+            transform: rotate(-1deg);
+            transition: transform 0.6s ease;
+        }
+
+        .paper:hover { transform: rotate(0deg); }
+
+        .line-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: repeating-linear-gradient(transparent, transparent 31px, rgba(0,0,0,0.05) 31px, rgba(0,0,0,0.05) 32px);
+            pointer-events: none;
+            margin-top: 64px;
+        }
+
+        .editor {
+            font-family: 'Caveat', cursive;
+            font-size: 2.2rem;
+            color: var(--ink-color);
+            line-height: 32px;
+            outline: none;
+            height: 100%;
+            overflow-y: auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* THE EVOLUTION PORTAL */
+        .world-side {
+            width: 0;
+            background: #000;
+            transition: width 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid rgba(255,255,255,0.1);
+        }
+
+        body.split-active .world-side { width: 55%; }
+        body.split-active .notebook-side { flex: 0.45; }
+
+        /* DIRECTOR/ARTIST CONTROLS */
+        .mode-dock {
+            position: absolute;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            padding: 15px 30px;
+            background: rgba(0,0,0,0.4);
+            backdrop-blur: 20px;
+            border-radius: 100px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .paper:hover .mode-dock { bottom: 30px; }
+
+        .btn-evolve {
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .btn-director { background: #6366f1; color: white; border: none; }
+        .btn-artist { background: transparent; color: white; border: 1px solid white; }
+        .btn-director:hover { background: #4f46e5; box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
+
+        /* GROWING INDICATOR */
+        .pulse-seed {
+            width: 12px; height: 12px;
+            background: var(--growth-green);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+            70% { transform: scale(1.2); box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+
+        iframe { width: 100%; height: 100%; border: none; background: #fff; }
+    </style>
+</head>
+<body id="app-root">
+
+    <div class="notebook-side">
+        <div class="paper">
+            <div class="line-overlay"></div>
+            <div id="editor" class="editor" contenteditable="true" spellcheck="false">
+Describe a world or an app...
+            </div>
+            
+            <div class="mode-dock">
+                <button class="btn-evolve btn-director" onclick="evolve('director')">🎬 Director</button>
+                <button class="btn-evolve btn-artist" onclick="evolve('artist')">🎨 Artist</button>
+                <button class="btn-evolve opacity-50" onclick="reset()">↺ Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="world-side">
+        <div class="p-4 bg-zinc-900 flex justify-between items-center text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
+            <div class="flex items-center">
+                <div id="seed-light" class="pulse-seed" style="display:none;"></div>
+                <span id="status-text">Stability: Dormant</span>
+            </div>
+            <div id="coordinate-text">COORD: 0.0.0.0</div>
+        </div>
+        <div id="output-container" class="flex-grow">
+            <iframe id="preview-frame" src="about:blank"></iframe>
+        </div>
+    </div>
+
+    <script>
+        const editor = document.getElementById('editor');
+        const body = document.getElementById('app-root');
+        const frame = document.getElementById('preview-frame');
+        const statusText = document.getElementById('status-text');
+        const seedLight = document.getElementById('seed-light');
+
+        async function evolve(role) {
+            const content = editor.innerText;
+            if (content.length < 5) return;
+
+            // Trigger Interface Shift
+            body.classList.add('split-active');
+            seedLight.style.display = 'inline-block';
+            statusText.innerText = "Evolving Seed...";
+            
+            // Random Coordinates for the "Living Paper" Vibe
+            document.getElementById('coordinate-text').innerText = 
+                `COORD: ${Math.floor(Math.random()*99)}.${Math.floor(Math.random()*99)}.PRIME`;
+
+            // This is the core logic from your simple-evolving-notebook
+            // In a production app, you would fetch from your AI endpoint here
+            simulateEvolution(role, content);
+        }
+
+        function simulateEvolution(role, content) {
+            setTimeout(() => {
+                const color = role === 'director' ? '#6366f1' : '#10b981';
+                const html = `
+                    <html>
+                    <head>
+                        <script src="https://cdn.tailwindcss.com"><\/script>
+                    </head>
+                    <body class="bg-slate-50 flex items-center justify-center h-screen p-10">
+                        <div class="bg-white p-12 rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full transform transition hover:scale-105">
+                            <div class="w-16 h-1 bg-${role === 'director' ? 'indigo' : 'emerald'}-500 mb-6"></div>
+                            <h1 class="text-4xl font-bold text-slate-800 mb-4">${role === 'director' ? 'The Vision' : 'The Masterpiece'}</h1>
+                            <p class="text-slate-500 leading-relaxed text-lg italic">"${content.substring(0, 100)}..."</p>
+                            <button class="mt-8 w-full py-4 rounded-xl text-white font-bold tracking-wide" style="background:${color}">
+                                LAUNCH PRODUCTION
+                            </button>
+                        </div>
+                    </body>
+                    </html>
+                `;
+                frame.srcdoc = html;
+                statusText.innerText = "Reality Stable";
+                seedLight.style.animation = "none";
+                seedLight.style.background = "#4ade80";
+            }, 1500);
+        }
+
+        function reset() {
+            body.classList.remove('split-active');
+            statusText.innerText = "Stability: Dormant";
+            seedLight.style.display = 'none';
+        }
+
+        // Auto-save logic like Notepad-JS
+        editor.addEventListener('input', () => {
+            localStorage.setItem('living_paper_v3', editor.innerHTML);
+        });
+
+        window.onload = () => {
+            const saved = localStorage.getItem('living_paper_v3');
+            if (saved) editor.innerHTML = saved;
+        };
+    </script>
+</body>
+</html>
+
+
+// Paper Prime: UM-Text Integration Logic
+async function evolveReality(role) {
+    const paperContext = captureNotepadVisuals(); // Captures "style" of the handwriting
+    const instruction = editor.innerText;        // The "Instruction"
+
+    // Engine: UM-Text Unified Multimodal approach
+    statusText.innerText = "UM-ENGINE: Analyzing Style & Layout...";
+    
+    const result = await engine.process({
+        vlm_instruction: instruction,
+        style_reference: paperContext,
+        mode: role // Director (Automatic) or Artist (Manual attributes)
+    });
+
+    // This results in a "Harmonious" UI generation
+    renderToPortal(result.harmonious_image_data);
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Paper Prime | Multimodal Evo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --paper: #fdfaf3; --ink: #1a202c; }
+        body { background: #0a0a0f; color: white; font-family: sans-serif; overflow: hidden; height: 100vh; display: flex; }
+        
+        /* Tactical Notebook */
+        .notebook { flex: 1; background: var(--paper); padding: 60px; position: relative; transition: 0.8s ease; }
+        .handwritten { font-family: 'serif'; font-size: 1.8rem; color: var(--ink); outline: none; height: 80%; }
+        
+        /* The Portal */
+        .portal { width: 0%; background: #000; transition: 0.8s ease; display: flex; flex-direction: column; overflow: hidden; border-left: 1px solid #333; }
+        body.active .portal { width: 60%; }
+        body.active .notebook { transform: translateX(-20%); }
+
+        /* The Voice Visualizer */
+        .voice-wave { height: 40px; display: flex; align-items: center; gap: 3px; margin-bottom: 10px; }
+        .bar { width: 4px; height: 10px; background: #6366f1; border-radius: 2px; }
+        .animating .bar { animation: wave 1s infinite ease-in-out; }
+        @keyframes wave { 0%, 100% { height: 10px; } 50% { height: 35px; } }
+    </style>
+</head>
+<body id="root">
+
+    <div class="notebook">
+        <div id="editor" class="handwritten" contenteditable="true">
+Write the seed of your world here...
+        </div>
+        <div class="mt-10 flex gap-4">
+            <button onclick="evolve()" class="bg-indigo-600 px-6 py-2 rounded-full font-bold">SPAWN REALITY 🌱</button>
+        </div>
+    </div>
+
+    <div class="portal">
+        <div class="p-6 border-b border-zinc-800 flex justify-between items-center">
+            <div>
+                <span class="text-[10px] text-zinc-500 block">VOICE FREQUENCY</span>
+                <div id="visualizer" class="voice-wave">
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                </div>
+            </div>
+            <div class="text-right">
+                <span class="text-[10px] text-zinc-500 block">UM-TEXT ENGINE</span>
+                <span id="status" class="text-xs text-indigo-400 font-mono">IDLE</span>
+            </div>
+        </div>
+        <iframe id="world-frame" class="flex-grow bg-white"></iframe>
+    </div>
+
+    <audio id="voice-output" hidden></audio>
+
+<script>
+    const HF_TOKEN = "YOUR_HUGGING_FACE_TOKEN"; // Replace with your token
+
+    async function evolve() {
+        const text = document.getElementById('editor').innerText;
+        document.getElementById('root').classList.add('active');
+        document.getElementById('visualizer').classList.add('animating');
+        document.getElementById('status').innerText = "DUAL-MODEL INFERENCE...";
+
+        // RUNNING TWO MODELS AT THE SAME TIME
+        // Promise.all fires both requests simultaneously
+        Promise.all([
+            generateWorld(text), // Model 1: Visual/App
+            generateVoice(text)  // Model 2: Voice/Audio
+        ]).then(([worldHtml, audioBlob]) => {
+            // Update UI with World
+            document.getElementById('world-frame').srcdoc = worldHtml;
+            
+            // Play the Voice
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = document.getElementById('voice-output');
+            audio.src = audioUrl;
+            audio.play();
+            
+            document.getElementById('status').innerText = "EVOLUTION COMPLETE";
+            document.getElementById('visualizer').classList.remove('animating');
+        });
+    }
+
+    // MODEL 1: Visual Evolution (Placeholder for UM-Text Logic)
+    async function generateWorld(prompt) {
+        // In a real setup, this calls a Model like Stable Diffusion or a GPT-4-style Coder
+        return `<html><body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
+                <div style="text-align:center;">
+                    <h1 style="color:#6366f1">World Spanned</h1>
+                    <p>${prompt}</p>
+                </div>
+                </body></html>`;
+    }
+
+    // MODEL 2: Voice Synthesis (Using Hugging Face Inference API)
+    async function generateVoice(prompt) {
+        const response = await fetch(
+            "https://api-inference.huggingface.co/models/espnet/kan-bayashi_ljspeech_vits",
+            {
+                headers: { Authorization: `Bearer ${HF_TOKEN}` },
+                method: "POST",
+                body: JSON.stringify({ inputs: `The world you described: ${prompt}, is now manifesting.` }),
+            }
+        );
+        return await response.blob();
+    }
+</script>
+</body>
+</html>
+
