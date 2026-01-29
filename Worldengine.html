@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paper Prime Evo 🌱</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --paper-off-white: #fdfaf3; --shelf-wood: #2c1e14; }
+    body { background: #1a1a1a; font-family: 'Inter', sans-serif; overflow: hidden; }
+    
+    /* Noteshelf Style Shelf */
+    .shelf-container {
+      height: 250px;
+      background: linear-gradient(to bottom, #3d2b1f, #221810);
+      display: flex; gap: 20px; padding: 20px; overflow-x: auto;
+      border-bottom: 8px solid #1a110a;
+    }
+    .notebook-cover {
+      width: 140px; height: 180px; flex-shrink: 0;
+      border-radius: 4px 12px 12px 4px;
+      transition: transform 0.3s; cursor: pointer;
+      position: relative; box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+    }
+    .notebook-cover:hover { transform: translateY(-10px) rotate(-2deg); }
+
+    /* Paper (WeTransfer) Style Canvas */
+    .canvas-area {
+      height: calc(100vh - 250px);
+      background: #2a2a2a; display: flex; align-items: center; justify-content: center;
+      padding: 40px; position: relative;
+    }
+    .active-page {
+      width: 100%; max-width: 800px; height: 100%;
+      background: var(--paper-off-white); border-radius: 2px;
+      box-shadow: 0 0 50px rgba(0,0,0,0.5);
+      padding: 60px; position: relative; overflow-y: auto;
+    }
+    
+    /* Tactile Tools */
+    .tool-belt {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(255,255,255,0.1); backdrop-blur: 10px;
+      padding: 10px 30px; border-radius: 50px; display: flex; gap: 20px;
+    }
+    .tool { font-size: 24px; cursor: pointer; transition: 0.2s; }
+    .tool:hover { transform: scale(1.3); }
+    
+    .handwritten { font-family: 'Caveat', cursive; outline: none; }
+  </style>
+</head>
+<body>
+
+  <div class="shelf-container" id="shelf">
+    <div class="notebook-cover bg-purple-700 p-4 border-l-8 border-purple-900" onclick="openBook('Life Seeds')">
+      <div class="text-white font-bold handwritten text-xl">Life Seeds</div>
+    </div>
+    <div class="notebook-cover bg-emerald-700 p-4 border-l-8 border-emerald-900" onclick="openBook('Evo Code')">
+      <div class="text-white font-bold handwritten text-xl">Evo Code</div>
+    </div>
+    <div class="notebook-cover bg-amber-600 p-4 border-l-8 border-amber-800" onclick="createBook()">
+      <div class="text-white font-bold text-center mt-12 text-3xl">+</div>
+    </div>
+  </div>
+
+  <div class="canvas-area">
+    <div class="active-page" id="main-editor">
+      <div class="flex justify-between items-center mb-8">
+        <h2 id="book-title" class="text-3xl font-bold text-gray-400 uppercase tracking-widest">Select a Journal</h2>
+        <div id="status" class="text-xs text-gray-400">Not Saved</div>
+      </div>
+      <div id="content" contenteditable="true" class="handwritten text-4xl text-gray-800 min-h-[300px]">
+        Tap a journal to begin your consciousness evolution...
+      </div>
+    </div>
+
+    <div class="tool-belt">
+      <span class="tool" onclick="format('bold')">🖋️</span>
+      <span class="tool" onclick="startVoice()">🎙️</span>
+      <span class="tool" onclick="generateAI()">🌱</span>
+      <span class="tool" onclick="downloadPDF()">📦</span>
+      <span class="tool" onclick="toggleTheme()">🌓</span>
+    </div>
+  </div>
+
+<script>
+  let activeBook = null;
+
+  // Notepad-JS Style Auto-Save
+  const content = document.getElementById('content');
+  content.addEventListener('input', () => {
+    if(activeBook) {
+      localStorage.setItem(`book_${activeBook}`, content.innerHTML);
+      document.getElementById('status').innerText = 'Synced to LocalStorage';
+    }
+  });
+
+  function openBook(title) {
+    activeBook = title;
+    document.getElementById('book-title').innerText = title;
+    const saved = localStorage.getItem(`book_${title}`);
+    content.innerHTML = saved || "Start writing...";
+    document.getElementById('status').innerText = 'Journal Active';
+  }
+
+  // Paper Evo: AI Generation based on text
+  async function generateAI() {
+    document.getElementById('status').innerText = 'Evolving seeds...';
+    // Here we would trigger the consciousness coordinates & HF model
+    setTimeout(() => {
+      content.innerHTML += `<div class="mt-4 p-4 border-l-4 border-green-500 bg-green-50 text-xl">AI EVO: Based on your current entries, your "Body" phase is manifesting as stability.</div>`;
+      document.getElementById('status').innerText = 'Evolution complete.';
+    }, 1500);
+  }
+
+  // Noteshelf: Audio Note Simulation
+  function startVoice() {
+    alert("Voice recording started... (Noteshelf Feature Sim)");
+  }
+
+  function downloadPDF() {
+    window.print(); // Simple export
+  }
+
+  function format(cmd) {
+    document.execCommand(cmd, false, null);
+  }
+</script>
+
+</body>
+</html>
