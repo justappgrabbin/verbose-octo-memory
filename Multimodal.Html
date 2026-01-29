@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Paper Prime | The Living Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --paper: #fdfaf3; --ink: #1a202c; --gate-green: #10B981; }
+        body { background: #0a0a0f; color: white; font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; display: flex; }
+        
+        /* The Living Notebook (Input Soil) */
+        .notebook { flex: 0.45; background: var(--paper); padding: 40px; position: relative; border-right: 1px solid rgba(255,255,255,0.1); }
+        .handwritten { font-family: 'Georgia', serif; font-size: 1.6rem; color: var(--ink); height: 80%; outline: none; line-height: 1.8; }
+        
+        /* The Multimodal Portal */
+        .portal { flex: 1; background: #000; display: flex; flex-direction: column; position: relative; }
+        .iframe-layer { flex-grow: 1; background: white; border: none; }
+        
+        /* HUD Indicators (From Living Tree Logic) */
+        .gate-hud { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 100; }
+        .gate-node { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--gate-green); }
+        .gate-node.active { background: var(--gate-green); box-shadow: 0 0 10px var(--gate-green); animation: pulse 1s infinite; }
+
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+
+    <div class="notebook">
+        <div id="editor" class="handwritten" contenteditable="true">
+Describe your app vision here... 
+(e.g., A fitness app that uses tree growth to track steps)
+        </div>
+        <div class="absolute bottom-10 left-10 flex gap-4">
+            <button onclick="evolveReality()" class="bg-zinc-900 text-white px-8 py-3 rounded-full font-bold border border-white/20 hover:scale-105 transition">
+                🌱 NOURISH & EVOLVE
+            </button>
+        </div>
+    </div>
+
+    <div class="portal">
+        <div class="gate-hud">
+            <div class="flex flex-col items-center"><div id="node-code" class="gate-node"></div><span class="text-[8px] mt-1">CODE</span></div>
+            <div class="flex flex-col items-center"><div id="node-vision" class="gate-node"></div><span class="text-[8px] mt-1">VISION</span></div>
+            <div class="flex flex-col items-center"><div id="node-voice" class="gate-node"></div><span class="text-[8px] mt-1">VOICE</span></div>
+        </div>
+        
+        <div id="status-bar" class="bg-zinc-900/80 p-2 text-[10px] font-mono text-emerald-400 tracking-tighter">
+            SYSTEM_IDLE // READY_FOR_SEED
+        </div>
+
+        <iframe id="portal-frame" class="iframe-layer"></iframe>
+    </div>
+
+    <audio id="portal-voice" hidden></audio>
+
+<script>
+    const HF_TOKEN = "YOUR_HF_TOKEN"; // Use your Hugging Face Token
+
+    async function evolveReality() {
+        const seed = document.getElementById('editor').innerText;
+        const statusBar = document.getElementById('status-bar');
+        
+        // 1. Activate HUD Nodes (Causal Graph Logic)
+        document.querySelectorAll('.gate-node').forEach(n => n.classList.add('active'));
+        statusBar.innerText = "MULTIMODAL_GESTATION_IN_PROGRESS...";
+
+        try {
+            // 2. RUN TRIPLE ENGINE SIMULTANEOUSLY
+            const [codeResponse, imageBlob, voiceBlob] = await Promise.all([
+                // ENGINE 1: The Coder (Using a high-end Coding Model)
+                fetchHF("meta-llama/Meta-Llama-3-70B-Instruct", { inputs: `Code a high-end UI in HTML/Tailwind for: ${seed}. Return ONLY code.` }),
+                
+                // ENGINE 2: The Artist (Using Flux for visual consistency)
+                fetchHF_Blob("black-forest-labs/FLUX.1-schnell", { inputs: `A professional app interface background for ${seed}` }),
+                
+                // ENGINE 3: The Director (Using Text-to-Speech)
+                fetchHF_Blob("facebook/mms-tts-eng", { inputs: `Your vision for ${seed.substring(0,30)} is now evolving into reality.` })
+            ]);
+
+            // 3. Manifest the Results
+            const frame = document.getElementById('portal-frame');
+            frame.srcdoc = codeResponse[0].generated_text;
+
+            const voice = document.getElementById('portal-voice');
+            voice.src = URL.createObjectURL(voiceBlob);
+            voice.play();
+
+            statusBar.innerText = "EVOLUTION_COMPLETE // REALITY_STABLE";
+            
+        } catch (err) {
+            statusBar.innerText = "EVOLUTION_ERROR: " + err.message;
+        }
+    }
+
+    // Helper functions for Hugging Face APIs
+    async function fetchHF(model, body) {
+        const r = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+            headers: { Authorization: `Bearer ${HF_TOKEN}`, "Content-Type": "application/json" },
+            method: "POST", body: JSON.stringify(body)
+        });
+        return r.json();
+    }
+
+    async function fetchHF_Blob(model, body) {
+        const r = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+            headers: { Authorization: `Bearer ${HF_TOKEN}` },
+            method: "POST", body: JSON.stringify(body)
+        });
+        return r.blob();
+    }
+</script>
+</body>
+</html>
