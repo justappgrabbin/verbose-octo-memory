@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paper Seed App Factory 🌱</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <style>
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(219, 112, 219, 0.5); }
+      50% { box-shadow: 0 0 40px rgba(147, 51, 234, 0.8); }
+    }
+    .glow-card { animation: pulse-glow 3s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+    .float { animation: float 3s ease-in-out infinite; }
+    .gradient-text { 
+      background: linear-gradient(135deg, #ec4899, #a855f7, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .tab-active { background: rgba(168, 85, 247, 0.3); border-color: rgba(168, 85, 247, 0.8); }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 min-h-screen text-white">
+
+<div id="app" class="container mx-auto px-4 py-8 max-w-7xl">
+  
+  <header class="text-center mb-12">
+    <h1 class="text-6xl font-bold mb-4 gradient-text float">🌱 Paper Seed App Factory</h1>
+    <p class="text-2xl text-purple-300 mb-2">Generate & Distribute Consciousness Apps</p>
+  </header>
+
+  <nav class="flex flex-wrap gap-3 mb-8 justify-center">
+    <button onclick="switchTab('generate')" id="tab-generate" class="tab-btn tab-active px-6 py-3 rounded-lg border-2 transition-all">🎨 Generate App</button>
+    <button onclick="switchTab('scaffolding')" id="tab-scaffolding" class="tab-btn px-6 py-3 rounded-lg border-2 transition-all">🧩 Scaffolding</button>
+    <button onclick="switchTab('ai')" id="tab-ai" class="tab-btn px-6 py-3 rounded-lg border-2 transition-all">🤖 AI Engine</button>
+    <button onclick="switchTab('preview')" id="tab-preview" class="tab-btn px-6 py-3 rounded-lg border-2 transition-all">👁️ Preview & Deploy</button>
+  </nav>
+
+  <div id="tab-content">
+    <section id="panel-generate" class="tab-panel">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-slate-900/50 backdrop-blur rounded-2xl p-8 border border-purple-500/30">
+          <h2 class="text-3xl font-bold mb-6 text-purple-400">👤 User Context</h2>
+          <div class="space-y-4">
+            <input type="text" id="user-name" placeholder="Name" class="w-full bg-slate-800 border border-purple-500/50 rounded-lg px-4 py-3">
+            <div class="grid grid-cols-2 gap-4">
+              <input type="date" id="birth-date" class="bg-slate-800 border border-purple-500/50 rounded-lg px-4 py-3">
+              <input type="time" id="birth-time" class="bg-slate-800 border border-purple-500/50 rounded-lg px-4 py-3">
+            </div>
+            <div class="space-y-4 pt-4">
+                <label class="block text-sm">Stress Level: <span id="s-val">50</span>%</label>
+                <input type="range" id="stress" class="w-full" oninput="document.getElementById('s-val').textContent=this.value">
+                <label class="block text-sm">Emotional Intensity: <span id="e-val">50</span>%</label>
+                <input type="range" id="emotion" class="w-full" oninput="document.getElementById('e-val').textContent=this.value">
+            </div>
+          </div>
+          <button onclick="calculateConsciousness()" class="w-full mt-6 bg-purple-600 py-4 rounded-lg font-bold">🧬 Calculate Coordinates</button>
+        </div>
+
+        <div class="bg-slate-900/50 backdrop-blur rounded-2xl p-8 border border-pink-500/30">
+          <h2 class="text-3xl font-bold mb-6 text-pink-400">⚙️ App Config</h2>
+          <select id="color-theme" class="w-full bg-slate-800 border border-pink-500/50 rounded-lg px-4 py-3 mb-4">
+            <option value="purple-pink">Purple-Pink</option>
+            <option value="blue-cyan">Blue-Cyan</option>
+            <option value="green-teal">Green-Teal</option>
+          </select>
+          <div id="consciousness-display" class="hidden p-4 bg-purple-900/30 rounded-lg border border-purple-500/50">
+            <p id="coordinates-output" class="font-mono text-sm"></p>
+          </div>
+        </div>
+      </div>
+      <div class="mt-8 text-center">
+        <button onclick="generateApp()" class="glow-card bg-gradient-to-r from-pink-600 to-purple-600 px-12 py-6 rounded-2xl font-bold text-2xl">🚀 Generate App</button>
+      </div>
+    </section>
+
+    <section id="panel-preview" class="tab-panel hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bg-white rounded-xl overflow-hidden h-[600px]">
+                <iframe id="preview-frame" class="w-full h-full border-none"></iframe>
+            </div>
+            <div class="bg-slate-900/50 p-6 rounded-xl border border-pink-500/30">
+                <h3 class="text-xl font-bold mb-4">Export Options</h3>
+                <button onclick="downloadApp()" class="w-full bg-purple-600 py-3 rounded-lg mb-3">💾 Download HTML</button>
+                <button onclick="copyToClipboard()" class="w-full bg-slate-700 py-3 rounded-lg">📋 Copy Code</button>
+            </div>
+        </div>
+    </section>
+  </div>
+</div>
+
+<script>
+const state = { consciousness: null, userData: {}, userContext: {} };
+
+window.switchTab = (tab) => {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+    document.getElementById('panel-' + tab).classList.remove('hidden');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
+    document.getElementById('tab-' + tab).classList.add('tab-active');
+};
+
+function calculateConsciousness() {
+    const d = document.getElementById('birth-date').value;
+    if(!d) return alert("Select date");
+    state.consciousness = {
+        personality: { sun: { gate: Math.floor(Math.random()*64), line: 3, color: 1, tone: 2, base: 4 } },
+        design: { sun: { gate: Math.floor(Math.random()*64), line: 1, color: 5, tone: 1, base: 1 } }
+    };
+    state.userContext = {
+        stress: document.getElementById('stress').value / 100,
+        emotion: document.getElementById('emotion').value / 100
+    };
+    document.getElementById('consciousness-display').classList.remove('hidden');
+    document.getElementById('coordinates-output').innerText = `Coord: ${state.consciousness.personality.sun.gate}.${state.consciousness.personality.sun.line}`;
+}
+
+async function generateApp() {
+    if(!state.consciousness) return alert("Calculate first");
+    
+    const theme = document.getElementById('color-theme').value;
+    const colors = theme === 'purple-pink' ? {p: '#a855f7', s: '#ec4899'} : {p: '#3b82f6', s: '#06b6d4'};
+
+    let html = `<!DOCTYPE html><html><head>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #2d3748; display: flex; justify-content: center; padding: 20px; font-family: sans-serif; }
+        .notebook { background: #fefcf5; width: 100%; max-width: 500px; min-height: 500px; border-radius: 8px; padding: 40px; position: relative; box-shadow: 10px 10px 0 rgba(0,0,0,0.2); }
+        .handwritten { font-family: 'Caveat', cursive; color: ${colors.p}; font-size: 2.5rem; }
+        .btn { background: ${colors.p}; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; border: none; }
+    </style></head><body>
+    <div class="notebook">
+        <div id="content"></div>
+        <div id="nav" class="mt-8 text-center"></div>
+    </div>
+    <script>
+        const ctx = ${JSON.stringify(state.userContext)};
+        const data = ${JSON.stringify(state.consciousness)};
+        let phase = 'body';
+
+        const pages = {
+            body: { title: "Grounding", text: "Your nervous system needs safety. Take a deep breath." },
+            heart: { title: "Feeling", text: "What you feel is valid data. Don't push it away." },
+            mind: { title: "Clarity", text: "Integration is complete. You are coordinates " + data.personality.sun.gate + "." }
+        };
+
+        function render() {
+            const p = pages[phase];
+            document.getElementById('content').innerHTML = '<h1 class="handwritten">' + p.title + '</h1><p class="mt-4 text-gray-700">' + p.text + '</p>';
+            document.getElementById('nav').innerHTML = '<button class="btn" onclick="next()">Next</button>';
+        }
+
+        function next() {
+            if(phase === 'body') phase = 'heart';
+            else if(phase === 'heart') phase = 'mind';
+            else return alert("Journey complete.");
+            render();
+        }
+        render();
+    <\/script></body></html>`;
+
+    document.getElementById('preview-frame').srcdoc = html;
+    state.generatedApp = html;
+    switchTab('preview');
+}
+
+function downloadApp() {
+    const blob = new Blob([state.generatedApp], {type: 'text/html'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = "my-app.html";
+    a.click();
+}
+</script>
+</body>
+</html>
+
